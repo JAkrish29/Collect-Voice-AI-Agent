@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: Aegis Collect AI API
+  version: 1.0.0
+  description: Enterprise collections AI platform API. Provider keys are configured by environment variables.
+servers:
+  - url: http://localhost:3000
+security:
+  - UserHeaders: []
+components:
+  securitySchemes:
+    UserHeaders:
+      type: apiKey
+      in: header
+      name: x-user-id
+      description: Development header auth. Production should replace this with Supabase session/JWT auth.
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+        requestId: { type: string }
+    CreateCampaign:
+      type: object
+      required: [name, agentConfigurationId, collectionTarget, filters]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        agentConfigurationId: { type: string, format: uuid }
+        collectionTarget: { type: number }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        filters: { type: object }
+    StartCall:
+      type: object
+      required: [customerId, provider]
+      properties:
+        campaignId: { type: string, format: uuid }
+        customerId: { type: string, format: uuid }
+        loanId: { type: string, format: uuid }
+        agentConfigurationId: { type: string, format: uuid }
+        provider: { type: string, enum: [vapi, twilio, simulation] }
+    PaymentCommitment:
+      type: object
+      required: [customerId, loanId, amount, promisedFor, channel]
+      properties:
+        callId: { type: string, format: uuid }
+        customerId: { type: string, format: uuid }
+        loanId: { type: string, format: uuid }
+        amount: { type: number }
+        promisedFor: { type: string, format: date }
+        channel: { type: string, enum: [voice, sms, whatsapp, email] }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        "200": { description: OK }
+  /api/customers:
+    get:
+      summary: Search customers
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        "200": { description: Customer list }
+  /api/customers/verify:
+    post:
+      summary: Verify customer identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId]
+              properties:
+                customerId: { type: string, format: uuid }
+                phoneLast4: { type: string }
+                dateOfBirth: { type: string }
+      responses:
+        "200": { description: Verification result }
+  /api/campaigns:
+    get:
+      summary: List campaigns
+      responses:
+        "200": { description: Campaign list }
+    post:
+      summary: Create campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCampaign" }
+      responses:
+        "201": { description: Created campaign }
+  /api/campaigns/{id}/start:
+    post:
+      summary: Start campaign
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: Campaign started }
+  /api/calls/start:
+    post:
+      summary: Start outbound call
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StartCall" }
+      responses:
+        "201": { description: Call started }
+  /api/calls/{id}/transcript:
+    post:
+      summary: Append realtime transcript chunk
+      responses:
+        "201": { description: Transcript appended }
+  /api/calls/{id}/summary:
+    post:
+      summary: Generate call summary, sentiment, language, and next best action
+      responses:
+        "200": { description: Summary result }
+  /api/objections/handle:
+    post:
+      summary: Generate compliant objection handling response
+      responses:
+        "200": { description: Objection response }
+  /api/payment-commitments:
+    post:
+      summary: Capture promise to pay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaymentCommitment" }
+      responses:
+        "201": { description: Commitment created }
+  /api/callbacks:
+    post:
+      summary: Schedule callback
+      responses:
+        "201": { description: Callback created }
+  /api/crm/update:
+    post:
+      summary: Write CRM update/audit event
+      responses:
+        "200": { description: CRM update accepted }
+  /api/agent-configurations:
+    post:
+      summary: Create voice agent configuration
+      responses:
+        "201": { description: Agent configuration created }
+  /api/redteam-tests:
+    post:
+      summary: Run red-team scenario
+      responses:
+        "201": { description: Test result }
+  /api/analytics:
+    get:
+      summary: Dashboard analytics
+      responses:
+        "200": { description: Analytics result }
+  /api/webhooks/vapi:
+    post:
+      summary: Vapi webhook ingress
+      security: []
+      responses:
+        "200": { description: Received }
+  /api/webhooks/twilio:
+    post:
+      summary: Twilio webhook ingress
+      security: []
+      responses:
+        "200": { description: Received }
+  /api/webhooks/elevenlabs:
+    post:
+      summary: ElevenLabs webhook ingress
+      security: []
+      responses:
+        "200": { description: Received }
+  /api/simulation/run:
+    post:
+      summary: Run deterministic pre-integration simulation suite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenarioId:
+                  type: string
+                  enum:
+                    - successful_call
+                    - failed_call
+                    - disconnected_call
+                    - wrong_customer
+                    - already_paid
+                    - callback_requested
+                    - abusive_user
+                    - multilingual_switching
+                    - payment_commitment
+                includeReports:
+                  type: boolean
+                  default: true
+      responses:
+        "200": { description: Simulation suite result }
