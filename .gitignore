@@ -9,3 +9,4 @@ playwright-report
 test-results
 *.log
 .next-dev-*.log
+tsconfig.tsbuildinfo
