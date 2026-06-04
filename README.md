@@ -1,5 +1,4 @@
-# Aegis Collect AI
-
+# Collect Voice AI Agent
 Enterprise AI collections platform for banks, NBFCs, lending institutions, and debt servicing teams.
 
 ## Stack
