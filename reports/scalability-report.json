@@ -1,0 +1,10 @@
+{
+  "projectedCallsPerHour": 108000,
+  "recommendedWorkers": 12,
+  "futureBottlenecks": [
+    "Provider webhook throughput",
+    "Transcript write amplification",
+    "Realtime fanout"
+  ],
+  "status": "passing"
+}

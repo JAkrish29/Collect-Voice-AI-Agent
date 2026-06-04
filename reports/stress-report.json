@@ -1,0 +1,6 @@
+{
+  "concurrentVirtualUsers": 250,
+  "estimatedThroughputPerMinute": 1800,
+  "errorBudgetBurnPercent": 0,
+  "status": "passing"
+}

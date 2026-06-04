@@ -1,0 +1,6 @@
+{
+  "mode": "deterministic-simulation",
+  "externalNetworkCalls": 0,
+  "metricsGeneratedBy": "src/server/simulation/reports.ts",
+  "status": "passing"
+}

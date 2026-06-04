@@ -1,0 +1,7 @@
+{
+  "failedSimulationRuns": 0,
+  "criticalBugs": 0,
+  "brokenFlows": 0,
+  "externalApiIntegrationAllowed": false,
+  "reason": "External API integration remains blocked until simulation gates are reviewed."
+}
